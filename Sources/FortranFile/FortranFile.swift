@@ -1,6 +1,16 @@
 public struct FortranFile {
-    public private(set) var text = "Hello, World!"
+    
+    public enum FortranError: Error {
+        
+    }
+    
+    
 
     public init() {
     }
+    
+    public static func format(string: String) throws -> FortranFile.Format {
+        try FormatParser.parse(string: string)
+    }
+    
 }
