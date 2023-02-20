@@ -76,8 +76,14 @@ extension FortranFile.FormatError.ErrorKind {
 extension FortranFile.FormatError: CustomStringConvertible {
     
     public var description: String {
-        let hats = String(repeating: " ", count: offset) + String(repeating: "^", count: length)
-        return "\(kind) in [\(offset)...\(offset + length - 1)]\n\(input)\n\(hats)"
+        let hats = String(repeating: " ", count: offset)
+        + String(repeating: "^", count: length)
+        
+        return """
+            \(kind) in [\(offset)...\(offset + length - 1)]
+            \(input)
+            \(hats)
+            """
     }
     
 }

@@ -196,12 +196,17 @@ extension FormatParser {
                 let descriptorToken = remaining.first,
                 let descriptor = descriptorToken.asTextDescriptor
             else {
-                throw FortranFile.FormatError(kind: .missingDescriptor, input: input, tokens: tokens)
+                throw FortranFile.FormatError(
+                    kind: .missingDescriptor,
+                    input: input,
+                    tokens: tokens)
             }
             
             remaining = Array(remaining.dropFirst())
             
-            let (width, decimals) = try parseSizes(tokens: remaining, input: input)
+            let (width, decimals) = try parseSizes(
+                tokens: remaining,
+                input: input)
             
             let item = FortranFile.Format.Item(
                 descriptor: descriptor,
@@ -218,9 +223,16 @@ extension FormatParser {
         return format
     }
 
-    private static func parseSizes(tokens: [Token], input: String) throws -> (Int?, Int?) {
+    private static func parseSizes(
+        tokens: [Token],
+        input: String
+    ) throws -> (Int?, Int?) {
+        
         guard tokens.count <= 3 else {
-            throw FortranFile.FormatError(kind: .unexpectedSymbols, input: input, tokens: tokens)
+            throw FortranFile.FormatError(
+                kind: .unexpectedSymbols,
+                input: input,
+                tokens: tokens)
         }
         
         switch (tokens.count > 0 ? tokens[0].digits : nil,
@@ -237,7 +249,10 @@ extension FormatParser {
             return (w, nil)
             
         default:
-            throw FortranFile.FormatError(kind: .unexpectedSymbols, input: input, tokens: tokens)
+            throw FortranFile.FormatError(
+                kind: .unexpectedSymbols,
+                input: input,
+                tokens: tokens)
         }
     }
 
@@ -254,16 +269,25 @@ extension FormatParser {
     ) throws {
         
         if item.descriptor.requiresWidth && item.width == nil {
-            throw FortranFile.FormatError(kind: .missingFieldWidth, input: input, tokens: tokens)
+            throw FortranFile.FormatError(
+                kind: .missingFieldWidth,
+                input: input,
+                tokens: tokens)
         }
         
         if item.descriptor.requiresDecimals && item.decimals == nil {
-            throw FortranFile.FormatError(kind: .missingFieldDecimals, input: input, tokens: tokens)
+            throw FortranFile.FormatError(
+                kind: .missingFieldDecimals,
+                input: input,
+                tokens: tokens)
         }
         
         if item.descriptor.requiresNonDimensioned
                 && (item.width != nil || item.decimals != nil) {
-            throw FortranFile.FormatError(kind: .unexpectedDimensions, input: input, tokens: tokens)
+            throw FortranFile.FormatError(
+                kind: .unexpectedDimensions,
+                input: input,
+                tokens: tokens)
         }
     }
     
@@ -272,13 +296,6 @@ extension FormatParser {
 // MARK: - Format Error Helpers
 
 fileprivate extension FortranFile.FormatError {
-    
-//    init(kind: ErrorKind, token: FormatParser.Token) {
-//        self.kind = kind
-//
-//        self.offset = token.offset
-//        self.length = token.length
-//    }
     
     init(kind: ErrorKind, input: String, tokens: [FormatParser.Token]) {
         self.kind = kind
