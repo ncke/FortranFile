@@ -283,9 +283,19 @@ extension FormatParser {
         }
         
         if item.descriptor.requiresNonDimensioned
-                && (item.width != nil || item.decimals != nil) {
+                && (item.width != nil || item.decimals != nil)
+        {
             throw FortranFile.FormatError(
                 kind: .unexpectedDimensions,
+                input: input,
+                tokens: tokens)
+        }
+        
+        if item.descriptor.requiresNoRepeatFactor
+            && item.repeatFactor != nil
+        {
+            throw FortranFile.FormatError(
+                kind: .descriptorIsNonRepeatable,
                 input: input,
                 tokens: tokens)
         }
@@ -330,13 +340,16 @@ fileprivate extension FormatParser.Token {
     }
     
     static let descriptorMap: [String: FortranFile.Format.Descriptor] = [
-        "A": .aTextString,
-        "D": .dDoublePrecision,
-        "E": .eRealExponent,
-        "F": .fRealFixedPoint,
-        "I": .iInteger,
-        "X": .xHorizontalSkip,
-        "P": .pScaleFactor
+        "A":    .aTextString,
+        "D":    .dDoublePrecision,
+        "E":    .eRealExponent,
+        "F":    .fRealFixedPoint,
+        "I":    .iInteger,
+        "X":    .xHorizontalSkip,
+        "P":    .pScaleFactor,
+        "B":    .bBlanksDefault,
+        "BN":   .bnBlanksIgnore,
+        "BZ":   .bzBlanksZero
     ]
     
 }
@@ -364,7 +377,21 @@ fileprivate extension FortranFile.Format.Descriptor {
     
     var requiresNonDimensioned: Bool {
         switch self {
-        case .xHorizontalSkip, .pScaleFactor: return true
+        case .xHorizontalSkip,
+             .pScaleFactor,
+             .bBlanksDefault,
+             .bnBlanksIgnore,
+             .bzBlanksZero: return true
+        default: return false
+        }
+    }
+    
+    var requiresNoRepeatFactor: Bool {
+        switch self {
+        case .pScaleFactor,
+             .bBlanksDefault,
+             .bnBlanksIgnore,
+             .bzBlanksZero: return true
         default: return false
         }
     }

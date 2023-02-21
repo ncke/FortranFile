@@ -17,6 +17,7 @@ extension FortranFile {
             case missingDescriptor
             case missingFieldDecimals
             case missingFieldWidth
+            case descriptorIsNonRepeatable
             case unexpectedDimensions
             case unexpectedSymbols
         }
@@ -36,6 +37,7 @@ extension FortranFile.FormatError.ErrorKind {
         case .missingDescriptor: return "Missing descriptor"
         case .missingFieldDecimals: return "Missing field decimals"
         case .missingFieldWidth: return "Missing field width"
+        case .descriptorIsNonRepeatable: return "Descriptor is non-repeatable"
         case .unexpectedDimensions: return "Unexpected dimensions"
         case .unexpectedSymbols: return "Unexpected symbols"
         }

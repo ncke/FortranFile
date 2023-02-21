@@ -22,6 +22,9 @@ extension FortranFile {
             case iInteger
             case xHorizontalSkip
             case pScaleFactor
+            case bBlanksDefault
+            case bnBlanksIgnore
+            case bzBlanksZero
         }
         
         public struct Item {

@@ -15,6 +15,9 @@ extension FortranFile {
         
         public enum ErrorKind {
             case internalError
+            case expectedInteger
+            case expectedReal
+            case unexpectedDecimalPoint
         }
         
         public let kind: ErrorKind
