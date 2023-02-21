@@ -11,7 +11,8 @@ import XCTest
 final class ReaderTests: XCTestCase {
 
     func testExample() throws {
-        let format = try FortranFile.format(string: "1x,4i1,i5,12i3,f15.11,2f18.11,f14.11,f20.11")
+        let format = try FortranFile.format(
+            string: "1x,4i1,i5,12i3,f15.11,2f18.11,f14.11,f20.11")
         
         let input = " 2210    8  0  2 -3  0  0  0  0  0  0  0  0  0  0.00000027809    -0.00001663913     0.00001664146 4.25018630147    1577.34354244780 "
         
