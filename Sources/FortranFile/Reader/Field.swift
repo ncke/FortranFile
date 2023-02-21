@@ -7,14 +7,23 @@
 
 import Foundation
 
-public enum Field {
-    case string(string: String)
-    case integer(integer: Int)
-    case double(double: Double)
-    case array(fields: [Field])
+public struct Field {
+    
+    enum FieldValue {
+        case string(string: String)
+        case integer(integer: Int)
+        case double(double: Double)
+        case array(fields: [Field])
+    }
+    
+    var fieldValue: FieldValue
+    
+    init(_ fieldValue: FieldValue) {
+        self.fieldValue = fieldValue
+    }
     
     public func value<T>() throws -> T? {
-        switch self {
+        switch self.fieldValue {
             
         case .string(let string):
             guard let s = string as? T else { return nil }

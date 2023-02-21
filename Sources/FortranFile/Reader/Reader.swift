@@ -48,7 +48,7 @@ extension Reader {
                     array.append(field)
                 }
                 
-                fields.append(Field.array(fields: array))
+                fields.append(Field(.array(fields: array)))
                 continue
             }
             
@@ -108,7 +108,7 @@ extension Reader {
         }
         
         cursor += text.count
-        return .string(string: text)
+        return Field(.string(string: text))
     }
     
 }
