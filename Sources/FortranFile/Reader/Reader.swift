@@ -26,7 +26,7 @@ class Reader {
     private var defaultBlankEditing: BlankEditing = .ignore
     private var currentBlankEditing: BlankEditing
     
-    private(set) var fields = [Field]()
+    private(set) var fields = [any FortranValue]()
     
     init(input: String, format: FortranFile.Format) {
         self.input = input
@@ -51,7 +51,7 @@ extension Reader {
             }
             
             if let repeatFactor = item.repeatFactor {
-                var array = [Field]()
+                var array = [any FortranValue]()
                 
                 for _ in 0..<repeatFactor {
                     guard let field = try read(item: item) else {
@@ -60,7 +60,7 @@ extension Reader {
                     array.append(field)
                 }
                 
-                fields.append(Field(.array(fields: array)))
+                fields.append(FortranArray(value: array))
                 continue
             }
             
@@ -72,12 +72,19 @@ extension Reader {
         }
     }
     
-    private func read(item: FortranFile.Format.Item) throws -> Field? {
+    private func read(item: FortranFile.Format.Item) throws -> (any FortranValue)? {
         
         switch item.descriptor {
             
         case .aTextString:
             return try handleTextual(item: item)
+            
+        case .dDoublePrecision,
+                .eRealExponent,
+                .fRealFixedPoint,
+                .gRealDecimal,
+                .iInteger:
+            return try handleNumeric(item: item)
             
         default:
             break
@@ -92,7 +99,7 @@ extension Reader {
 
 extension Reader {
     
-    private func handleNumeric(item: FortranFile.Format.Item) throws -> Field? {
+    private func handleNumeric(item: FortranFile.Format.Item) throws -> (any FortranValue)? {
         
         guard let width = item.width else { throw internalError(item) }
         
@@ -117,7 +124,7 @@ extension Reader {
             cursor += raw.count
             if wasCommaTerminated { cursor += 1 }
             
-            return Field(.integer(integer: integer))
+            return FortranInteger(value: integer)
         }
         
         if item.hasRealDescriptor, let decimals = item.decimals {
@@ -128,7 +135,7 @@ extension Reader {
             cursor += raw.count
             if wasCommaTerminated { cursor += 1 }
             
-            return Field(.double(double: real))
+            return FortranDouble(value: real)
         }
         
         throw internalError(item)
@@ -201,7 +208,7 @@ extension Reader {
     
     private func handleTextual(
         item: FortranFile.Format.Item
-    ) throws -> Field? {
+    ) throws -> (any FortranValue)? {
         
         guard
             item.descriptor == FortranFile.Format.Descriptor.aTextString,
@@ -218,7 +225,7 @@ extension Reader {
         }
         
         cursor += text.count
-        return Field(.string(string: text))
+        return FortranString(value: text)
     }
     
 }
@@ -337,6 +344,7 @@ extension Reader {
         
         return FortranFile.ReadError(
             kind: .internalError,
+            input: input,
             offset: cursor,
             length: item.width ?? 1)
     }
@@ -348,6 +356,7 @@ extension Reader {
         
         return FortranFile.ReadError(
             kind: kind,
+            input: input,
             offset: cursor,
             length: item.width ?? 1)
     }

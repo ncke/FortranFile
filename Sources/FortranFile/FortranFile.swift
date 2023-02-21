@@ -7,7 +7,7 @@ public struct FortranFile {
     public static func read(
         input: String,
         using format: Format
-    ) throws -> [Field] {
+    ) throws -> [any FortranValue] {
         let reader = Reader(input: input, format: format)
         try reader.read()
         return reader.fields

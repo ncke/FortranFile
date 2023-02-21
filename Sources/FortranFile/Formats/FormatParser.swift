@@ -15,7 +15,6 @@ struct FormatParser {
     
     static func parse(string: String) throws -> FortranFile.Format {
         let tokens = try tokenise(formatString: string)
-        print(tokens)
         let expressions = groupIntoExpressions(tokens: tokens)
         let format = try generate(from: expressions, input: string)
         
