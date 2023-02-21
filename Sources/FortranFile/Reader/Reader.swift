@@ -79,6 +79,9 @@ extension Reader {
         case .aTextString:
             return try handleTextual(item: item)
             
+        case .lLogical:
+            return try handleLogical(item: item)
+            
         case .dDoublePrecision,
                 .eRealExponent,
                 .fRealFixedPoint,
@@ -179,11 +182,15 @@ extension Reader {
     private enum BlankEditing {
         case ignore, zero
         
+        static func isBlankCharacter(_ char: Character) -> Bool {
+            char == " " || char == "\t"
+        }
+        
         func edit(raw: String) -> String {
             var edited = String()
             var isLeading = true
             for ch in raw {
-                let isBlank = ch == " "
+                let isBlank = BlankEditing.isBlankCharacter(ch)
                 
                 if isLeading || !isBlank { edited += String(ch) }
                 if !isBlank {
@@ -198,6 +205,55 @@ extension Reader {
             
             return edited
         }
+    }
+    
+}
+
+// MARK: - Handle Logical Descriptor
+
+extension Reader {
+    
+    private func handleLogical(
+        item: FortranFile.Format.Item
+    ) throws -> (any FortranValue)? {
+        
+        guard
+            item.descriptor == FortranFile.Format.Descriptor.lLogical,
+            let width = item.width
+        else {
+            throw internalError(item)
+        }
+        
+        guard let (text, wasCommaTerminated) = getRaw(
+            width: width,
+            allowCommaTermination: true)
+        else {
+            return nil
+        }
+        
+        var purportedLogical: Bool? = nil
+        for ch in text.uppercased() {
+            guard !BlankEditing.isBlankCharacter(ch), ch != "." else {
+                continue
+            }
+            
+            if ch == "T" {
+                purportedLogical = true
+            } else if ch == "F" {
+                purportedLogical = false
+            }
+            
+            break
+        }
+        
+        guard let logical = purportedLogical else {
+            throw readError(item, .expectedLogical)
+        }
+        
+        cursor += text.count
+        if wasCommaTerminated { cursor += 1 }
+        
+        return FortranLogical(value: logical)
     }
     
 }

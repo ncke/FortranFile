@@ -14,22 +14,27 @@ public protocol FortranValue {
 
 public struct FortranDouble: FortranValue {
     public typealias T = Double
-    public var value: Double
+    public let value: Double
 }
 
 public struct FortranInteger: FortranValue {
     public typealias T = Int
-    public var value: Int
+    public let value: Int
+}
+
+public struct FortranLogical: FortranValue {
+    public typealias T = Bool
+    public let value: Bool
 }
 
 public struct FortranString: FortranValue {
     public typealias T = String
-    public var value: String
+    public let value: String
 }
 
 public struct FortranArray: FortranValue {
     public typealias T = [any FortranValue]
-    public var value: T
+    public let value: T
     
     public subscript(index: Int) -> any FortranValue {
         get {

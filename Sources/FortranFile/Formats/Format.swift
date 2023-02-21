@@ -20,6 +20,7 @@ extension FortranFile {
             case fRealFixedPoint
             case gRealDecimal
             case iInteger
+            case lLogical
             case xHorizontalSkip
             case pScaleFactor
             case bBlanksDefault

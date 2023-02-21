@@ -16,6 +16,7 @@ extension FortranFile {
         public enum ErrorKind {
             case internalError
             case expectedInteger
+            case expectedLogical
             case expectedReal
             case unexpectedDecimalPoint
         }
@@ -33,6 +34,7 @@ extension FortranFile.ReadError.ErrorKind {
     public var description: String {
         switch self {
         case .expectedReal: return "Expected real"
+        case .expectedLogical: return "Expected logical"
         case .expectedInteger: return "Expected integer"
         case .unexpectedDecimalPoint: return "Unexpected decimal point"
         case .internalError: return "Internal error"

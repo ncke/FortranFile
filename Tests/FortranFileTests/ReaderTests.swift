@@ -27,9 +27,27 @@ final class ReaderTests: XCTestCase {
             print(error)
             print("hello")
         }
+    }
+    
+    func testLogicals() throws {
+        let format = try FortranFile.format(string: "i4, l5, l3, l1, l2")
+        let input1 = "1234.TRUE .FT T"
+        let result1 = try FortranFile.read(input: input1, using: format)
         
-
+        XCTAssertTrue(result1[1].value as! Bool)
+        XCTAssertFalse(result1[2].value as! Bool)
+        XCTAssertTrue(result1[3].value as! Bool)
+        XCTAssertTrue(result1[4].value as! Bool)
         
+        let bad = "1234.TRUE X T T"
+        XCTAssertThrowsError(
+            try FortranFile.read(input: bad, using: format)
+        ) {
+            error in
+            
+            XCTAssertTrue(
+                (error as! FortranFile.ReadError).kind == .expectedLogical)
+        }
     }
 
 }

@@ -281,6 +281,13 @@ extension FormatParser {
                 tokens: tokens)
         }
         
+        if item.descriptor.requiresNoDecimals && item.decimals != nil {
+            throw FortranFile.FormatError(
+                kind: .unexpectedDecimalWidth,
+                input: input,
+                tokens: tokens)
+        }
+        
         if item.descriptor.requiresNonDimensioned
                 && (item.width != nil || item.decimals != nil)
         {
@@ -344,6 +351,7 @@ fileprivate extension FormatParser.Token {
         "E":    .eRealExponent,
         "F":    .fRealFixedPoint,
         "I":    .iInteger,
+        "L":    .lLogical,
         "X":    .xHorizontalSkip,
         "P":    .pScaleFactor,
         "B":    .bBlanksDefault,
@@ -370,6 +378,13 @@ fileprivate extension FortranFile.Format.Descriptor {
              .eRealExponent,
              .fRealFixedPoint,
              .gRealDecimal: return true
+        default: return false
+        }
+    }
+    
+    var requiresNoDecimals: Bool {
+        switch self {
+        case .iInteger, .lLogical: return true
         default: return false
         }
     }
