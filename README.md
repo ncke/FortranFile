@@ -6,8 +6,15 @@ Fortran is great, isn't it? But do you have lots of data sitting in Fortran-form
 ## How to access a Fortran formatted file.
 
 ### Step 1. Create a format.
+```Swift
+let format = try FortranFile.format(string: "1x,4i1,i5,12i3,f15.11,2f18.11,f14.11,f20.11")
+```
 
 ### Step 2. Use the format to read a line of input.
+```Swift
+let result = try FortranFile.read(input: input, using: format)
+```
+The result is an array of `FortranValue`s corresponding to the values read from the input.
 
 ## Supported format specifiers.
 
