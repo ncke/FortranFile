@@ -14,7 +14,7 @@ let format = try FortranFile.format(string: "1x,4i1,i5,12i3,f15.11,2f18.11,f14.1
 ```Swift
 let result = try FortranFile.read(input: input, using: format)
 ```
-The result is an array of `FortranValue` corresponding to the values read from the input.
+The result is an array of `any FortranValue` corresponding to the values read from the input.
 
 ## Supported format specifiers.
 
