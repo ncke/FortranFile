@@ -11,403 +11,166 @@ import Foundation
 
 struct FormatParser {
     
-    private typealias Expression = [Token]
+    private static let descriptors: [String: any Descriptor.Type] = [
+        "A": ATextDescriptor.self,
+        "F": FRealDescriptor.self,
+        "I": IIntegerDescriptor.self
+    ]
     
-    static func parse(string: String) throws -> FortranFile.Format {
-        let tokens = try tokenise(formatString: string)
-        let expressions = groupIntoExpressions(tokens: tokens)
-        let format = try generate(from: expressions, input: string)
-        
-        return format
-    }
-    
-}
-
-// MARK: - Token
-
-extension FormatParser {
-    
-    struct Token {
-        enum TokenType {
-            case comma
-            case space
-            case point
-            case digits(n: Int)
-            case text(t: String)
-        }
-        
-        let tokenType: TokenType
-        let offset: Int
-        let length: Int
-        
-        var digits: Int? {
-            guard case TokenType.digits(let n) = tokenType else {
-                return nil
-            }
-            
-            return n
-        }
-        
-        var text: String? {
-            guard case TokenType.text(let t) = tokenType else {
-                return nil
-            }
-            
-            return t
-        }
-    }
-    
-}
-
-// MARK: - Tokeniser
-
-extension FormatParser {
-    
-    private static func tokenise(formatString: String) throws -> [Token] {
-        var tokens = [Token]()
-        var lexeme = String()
-        var isInsideDigits = false
-        var offset: Int = 0
-        
-        func commitToken(_ token: Token? = nil, nextOffset: Int?) {
-            let commit: Token
-            
-            if let token = token {
-                commit = token
-            } else if isInsideDigits, let number = Int(lexeme) {
-                commit = Token(
-                    tokenType: .digits(n: number),
-                    offset: offset,
-                    length: lexeme.count)
-            } else if !lexeme.isEmpty {
-                commit = Token(
-                    tokenType: .text(t: lexeme),
-                    offset: offset,
-                    length: lexeme.count)
-            } else {
-                return
-            }
-            
-            tokens.append(commit)
-            
-            lexeme = String()
-            if let nextOffset = nextOffset {
-                offset = nextOffset
-            }
-        }
-        
-        for i in 0..<formatString.count {
-            let input = try formatString.excerpt(i, 1)
-            let isDigit = input >= "0" && input <= "9"
-            
-            if !isDigit && isInsideDigits {
-                commitToken(nextOffset: i)
-                isInsideDigits = false
-            }
-            
-            if isDigit && !isInsideDigits {
-                commitToken(nextOffset: i)
-                isInsideDigits = true
-            }
-            
-            if let characterTokenType = characterTokenTypes[input] {
-                commitToken(nextOffset: i)
-                let characterToken = Token(
-                    tokenType: characterTokenType,
-                    offset: offset,
-                    length: 1)
-                commitToken(characterToken, nextOffset: i + 1)
-                continue
-            }
-
-            lexeme += input
-        }
-        
-        commitToken(nextOffset: nil)
-        
-        return tokens
-    }
-    
-    private static let characterTokenTypes: [Substring: Token.TokenType] = [
-        ",": .comma,
-        " ": .space,
-        ".": .point
+    private static let commands: [String: any Command.Type] = [
+        "X": XSkipCommand.self
     ]
     
 }
 
-// MARK: - Expression Grouping
+// MARK: - Parsing
 
 extension FormatParser {
     
-    private static func groupIntoExpressions(tokens: [Token]) -> [Expression] {
-        var expressions = [Expression]()
-        var expression = Expression()
+    typealias FormatUnit = (offset: String.Index, content: [String])
+    
+    private typealias Word = (offset: String.Index, content: String)
+    
+    static func parse(formatString: String) throws -> FortranFile.Format {
+        var items = [FortranFile.Format.FormatItem]()
+        let words = splitIntoWords(formatString)
+        let units = aggregateIntoUnits(words)
         
-        func commit() {
-            guard !expression.isEmpty else { return }
-            expressions.append(expression)
-            expression = []
-        }
-        
-        for token in tokens {
-            if token.isSeparator {
-                commit()
-                
-                if token.shouldConsumeAsSeparator {
-                    continue
+        for unit in units {
+            var remaining = unit.content
+            
+            func error(
+                _ kind: FortranFile.FormatError.ErrorKind
+            ) -> FortranFile.FormatError {
+                let length = unit.content.reduce(0) { partial, str in
+                    partial + str.count
                 }
+                
+                return FortranFile.FormatError(
+                    kind: kind,
+                    input: formatString,
+                    offset: unit.offset,
+                    length: max(length, 1))
             }
             
-            expression.append(token)
-        }
-        
-        commit()
-        
-        return expressions
-    }
-    
-}
-
-// MARK: - Format Generator
-
-extension FormatParser {
-    
-    private static func generate(
-        from expressions: [Expression],
-        input: String
-    ) throws -> FortranFile.Format {
-        
-        var items = [FortranFile.Format.Item]()
-        
-        for tokens in expressions {
-            var remaining = tokens
-        
-            var repeatFactor: Int? = nil
-            if let repeats = remaining.first,
-               let n = repeats.digits
-            {
-                repeatFactor = n
+            guard let word = remaining.first else {
+                throw error(.expectedDescriptor)
+            }
+            
+            let repeatCount: Int
+            if let parsedCount = Int(word) {
+                repeatCount = parsedCount
                 remaining = Array(remaining.dropFirst())
+            } else {
+                repeatCount = 1
             }
             
-            guard
-                let descriptorToken = remaining.first,
-                let descriptor = descriptorToken.asTextDescriptor
-            else {
-                throw FortranFile.FormatError(
-                    kind: .missingDescriptor,
-                    input: input,
-                    tokens: tokens)
+            guard let code = remaining.first?.uppercased() else {
+                throw error(.expectedDescriptor)
             }
             
             remaining = Array(remaining.dropFirst())
             
-            let (width, decimals) = try parseSizes(
-                tokens: remaining,
-                input: input)
+            if let descriptorType = descriptors[code] {
+                guard let descriptor = descriptorType.init(
+                    formatWords: remaining)
+                else {
+                    throw error(.badDescriptor)
+                }
+                
+                let item = FortranFile.Format.FormatItem.descriptor(
+                    descriptor: descriptor,
+                    repeatCount: repeatCount)
+                
+                items.append(item)
+                continue
+            }
             
-            let item = FortranFile.Format.Item(
-                descriptor: descriptor,
-                repeatFactor: repeatFactor,
-                width: width,
-                decimals: decimals)
+            if let commandType = commands[code] {
+                guard let command = commandType.init(
+                    prefix: repeatCount,
+                    formatWords: remaining)
+                else {
+                    throw error(.badDescriptor)
+                }
+                
+                let item = FortranFile.Format.FormatItem.command(
+                    command: command)
+                
+                items.append(item)
+                continue
+            }
             
-            try validateItemSemantics(item: item, tokens: tokens, input: input)
+            throw error(.expectedDescriptor)
+        }
+        
+        return FortranFile.Format(items: items)
+    }
+    
+    private static func aggregateIntoUnits(_ words: [Word]) -> [FormatUnit] {
+        var tokens = [FormatUnit]()
+        var tokenWords = [Word]()
+        
+        func consume() {
+            guard let offset = tokenWords.first?.offset else { return }
+            tokens.append((offset, tokenWords.map { word in word.content }))
+            tokenWords = []
+        }
+        
+        for word in words {
+            if word.content == "," || word.content == " " {
+                consume()
+                continue
+            }
             
-            items.append(item)
+            tokenWords.append(word)
         }
         
-        let format = FortranFile.Format(items: items)
-        return format
-    }
+        consume()
 
-    private static func parseSizes(
-        tokens: [Token],
-        input: String
-    ) throws -> (Int?, Int?) {
+        return tokens
+    }
+    
+    private static func splitIntoWords(_ string: String) -> [Word] {
+        var words = [Word]()
+        var last: Character?
+        var chars = [Character]()
+        var wordOffset = string.startIndex
+        var currentOffset = string.startIndex
         
-        guard tokens.count <= 3 else {
-            throw FortranFile.FormatError(
-                kind: .unexpectedSymbols,
-                input: input,
-                tokens: tokens)
+        func consume() {
+            guard !chars.isEmpty else { return }
+            let word = (wordOffset, chars.concatenated())
+            words.append(word)
+            chars = []
+            wordOffset = currentOffset
         }
         
-        switch (tokens.count > 0 ? tokens[0].digits : nil,
-                tokens.count > 1 ? tokens[1].tokenType : nil,
-                tokens.count > 2 ? tokens[2].digits : nil)
-        {
-        case (.none, .none, .none):
-            return (nil, nil)
+        for char in string {
+            defer {
+                chars.append(char)
+                last = char
+                currentOffset = string.index(after: currentOffset)
+            }
             
-        case (.some(let w), .some(.point), .some(let d)):
-            return (w, d)
-        
-        case (.some(let w), .none, .none):
-            return (w, nil)
+            var isWordStart = char == "," || char == " " || char == "."
             
-        default:
-            throw FortranFile.FormatError(
-                kind: .unexpectedSymbols,
-                input: input,
-                tokens: tokens)
-        }
-    }
-
-}
-
-// MARK: - Semantic Validation
-
-extension FormatParser {
-    
-    private static func validateItemSemantics(
-        item: FortranFile.Format.Item,
-        tokens: [Token],
-        input: String
-    ) throws {
-        
-        if item.descriptor.requiresWidth && item.width == nil {
-            throw FortranFile.FormatError(
-                kind: .missingFieldWidth,
-                input: input,
-                tokens: tokens)
+            if char.isLetter, let last = last, !last.isLetter {
+                isWordStart = true
+            }
+            
+            if char.isNumber, let last = last, !last.isNumber {
+                isWordStart = true
+            }
+            
+            if isWordStart {
+                consume()
+            }
         }
         
-        if item.descriptor.requiresDecimals && item.decimals == nil {
-            throw FortranFile.FormatError(
-                kind: .missingFieldDecimals,
-                input: input,
-                tokens: tokens)
-        }
+        consume()
         
-        if item.descriptor.requiresNoDecimals && item.decimals != nil {
-            throw FortranFile.FormatError(
-                kind: .unexpectedDecimalWidth,
-                input: input,
-                tokens: tokens)
-        }
-        
-        if item.descriptor.requiresNonDimensioned
-                && (item.width != nil || item.decimals != nil)
-        {
-            throw FortranFile.FormatError(
-                kind: .unexpectedDimensions,
-                input: input,
-                tokens: tokens)
-        }
-        
-        if item.descriptor.requiresNoRepeatFactor
-            && item.repeatFactor != nil
-        {
-            throw FortranFile.FormatError(
-                kind: .descriptorIsNonRepeatable,
-                input: input,
-                tokens: tokens)
-        }
-    }
-    
-}
-
-// MARK: - Format Error Helpers
-
-fileprivate extension FortranFile.FormatError {
-    
-    init(kind: ErrorKind, input: String, tokens: [FormatParser.Token]) {
-        self.kind = kind
-        self.input = input
-        self.offset = tokens.first?.offset ?? 0
-        self.length = tokens.reduce(0) { accum, token in accum + token.length }
-    }
-
-}
-
-// MARK: - Token Helpers
-
-fileprivate extension FormatParser.Token {
-    
-    var isSeparator: Bool {
-        switch self.tokenType {
-        case .text, .digits, .point: return false
-        default: return true
-        }
-    }
-    
-    var shouldConsumeAsSeparator: Bool {
-        switch self.tokenType {
-        case .comma, .space: return true
-        default: return false
-        }
-    }
-    
-    var asTextDescriptor: FortranFile.Format.Descriptor? {
-        guard let t = self.text else { return nil }
-        return Self.descriptorMap[t.uppercased()]
-    }
-    
-    static let descriptorMap: [String: FortranFile.Format.Descriptor] = [
-        "A":    .aTextString,
-        "D":    .dDoublePrecision,
-        "E":    .eRealExponent,
-        "F":    .fRealFixedPoint,
-        "I":    .iInteger,
-        "L":    .lLogical,
-        "X":    .xHorizontalSkip,
-        "P":    .pScaleFactor,
-        "B":    .bBlanksDefault,
-        "BN":   .bnBlanksIgnore,
-        "BZ":   .bzBlanksZero
-    ]
-    
-}
-
-// MARK: - Descriptor Helpers
-
-fileprivate extension FortranFile.Format.Descriptor {
-    
-    var requiresWidth: Bool {
-        switch self {
-        case .xHorizontalSkip, .pScaleFactor: return false
-        default: return true
-        }
-    }
-    
-    var requiresDecimals: Bool {
-        switch self {
-        case .dDoublePrecision,
-             .eRealExponent,
-             .fRealFixedPoint,
-             .gRealDecimal: return true
-        default: return false
-        }
-    }
-    
-    var requiresNoDecimals: Bool {
-        switch self {
-        case .iInteger, .lLogical: return true
-        default: return false
-        }
-    }
-    
-    var requiresNonDimensioned: Bool {
-        switch self {
-        case .xHorizontalSkip,
-             .pScaleFactor,
-             .bBlanksDefault,
-             .bnBlanksIgnore,
-             .bzBlanksZero: return true
-        default: return false
-        }
-    }
-    
-    var requiresNoRepeatFactor: Bool {
-        switch self {
-        case .pScaleFactor,
-             .bBlanksDefault,
-             .bnBlanksIgnore,
-             .bzBlanksZero: return true
-        default: return false
-        }
+        return words
     }
     
 }

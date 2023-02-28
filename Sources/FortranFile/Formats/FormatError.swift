@@ -14,19 +14,28 @@ extension FortranFile {
     public struct FormatError: Error {
         
         public enum ErrorKind: CustomStringConvertible {
-            case missingDescriptor
-            case missingFieldDecimals
-            case missingFieldWidth
-            case descriptorIsNonRepeatable
-            case unexpectedDecimalWidth
-            case unexpectedDimensions
-            case unexpectedSymbols
+            case badDescriptor
+            case expectedDescriptor
+            case unrecognisedDescriptor
         }
         
         public let kind: ErrorKind
         public let input: String
         public let offset: Int
         public let length: Int
+        
+        init(
+            kind: ErrorKind,
+            input: String,
+            offset: String.Index,
+            length: Int
+        ) {
+            self.kind = kind
+            self.input = input
+            self.offset = input.distance(from: input.startIndex, to: offset)
+            self.length = length
+        }
+        
     }
     
 }
@@ -35,13 +44,9 @@ extension FortranFile.FormatError.ErrorKind {
     
     public var description: String {
         switch self {
-        case .missingDescriptor: return "Missing descriptor"
-        case .missingFieldDecimals: return "Missing field decimals"
-        case .missingFieldWidth: return "Missing field width"
-        case .descriptorIsNonRepeatable: return "Descriptor is non-repeatable"
-        case .unexpectedDecimalWidth: return "Unexpected decimal width"
-        case .unexpectedDimensions: return "Unexpected dimensions"
-        case .unexpectedSymbols: return "Unexpected symbols"
+        case .badDescriptor: return "Bad descriptor"
+        case .expectedDescriptor: return "Expected descriptor"
+        case .unrecognisedDescriptor: return "Unrecognised descriptor"
         }
     }
     

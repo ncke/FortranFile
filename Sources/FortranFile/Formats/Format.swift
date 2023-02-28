@@ -7,35 +7,29 @@
 
 import Foundation
 
-// MARK: - Format
+protocol Command {
+    init?(prefix: Int, formatWords: [String])
+    func execute(context: inout ReadingContext)
+}
+
+protocol Descriptor<Output> {
+    associatedtype Output
+    init?(formatWords: [String])
+    var width: Int { get }
+    var canCommaTerminate: Bool { get }
+    func translate(from inputString: String) -> Output?
+}
 
 extension FortranFile {
     
     public struct Format {
         
-        public enum Descriptor {
-            case aTextString
-            case dDoublePrecision
-            case eRealExponent
-            case fRealFixedPoint
-            case gRealDecimal
-            case iInteger
-            case lLogical
-            case xHorizontalSkip
-            case pScaleFactor
-            case bBlanksDefault
-            case bnBlanksIgnore
-            case bzBlanksZero
+        enum FormatItem {
+            case command(command: any Command)
+            case descriptor(descriptor: any Descriptor, repeatCount: Int)
         }
         
-        public struct Item {
-            let descriptor: Descriptor
-            let repeatFactor: Int?
-            let width: Int?
-            let decimals: Int?
-        }
-        
-        public let items: [Item]
+        var items: [FormatItem]
         
     }
     
