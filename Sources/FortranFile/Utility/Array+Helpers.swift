@@ -7,7 +7,7 @@
 
 import Foundation
 
-// MARK: - Elements
+// MARK: - Array Destructuring
 
 extension Array {
     

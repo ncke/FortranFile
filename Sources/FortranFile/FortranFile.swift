@@ -1,8 +1,45 @@
-public struct FortranFile {
+// MARK: - Fortran File
+
+public struct FortranFile {}
+
+// MARK: - Formats
+
+extension FortranFile {
     
-    public static func format(string: String) throws -> Format {
+    public struct Format {
+        var descriptors: [any Descriptor]
+    }
+    
+    public static func format(from string: String) throws -> Format {
         try FormatParser.parse(formatString: string)
     }
+    
+}
+
+// MARK: - Format Error
+
+extension FortranFile {
+    
+    public struct FormatError: FortranFileError {
+
+        public enum ErrorKind: String, CustomStringConvertible {
+            public var description: String { self.rawValue }
+            case badDescriptor = "Bad descriptor"
+            case expectedDescriptor = "Expected a descriptor"
+            case unrecognisedDescriptor = "Unrecognised descriptor"
+        }
+        
+        public let kind: ErrorKind
+        public let input: String
+        public let offset: Int
+        public let length: Int
+    }
+    
+}
+
+// MARK: - Reading
+
+extension FortranFile {
     
     public static func read(
         input: String,
@@ -16,3 +53,5 @@ public struct FortranFile {
     }
     
 }
+
+
