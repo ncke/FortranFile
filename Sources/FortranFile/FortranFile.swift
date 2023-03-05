@@ -7,7 +7,8 @@ public struct FortranFile {}
 extension FortranFile {
     
     public struct Format {
-        var descriptors: [any Descriptor]
+        let descriptors: [any Descriptor]
+        let maximumWidth: Int
     }
     
     public static func format(from string: String) throws -> Format {
@@ -45,11 +46,8 @@ extension FortranFile {
         input: String,
         using format: Format
     ) throws -> [any FortranValue] {
-        fatalError()
-        
-//        let reader = Reader(input: input, format: format)
-//        try reader.read()
-//        return reader.fields
+        let reader = Reader(format: format)
+        return try reader.read(input: input)
     }
     
 }

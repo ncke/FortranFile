@@ -14,11 +14,17 @@ final class FormatParserTests: XCTestCase {
 
         do {
             let format = try FormatParser.parse(formatString: "1x,4i1,i5,12i3,f15.11,2f18.11,f14.11,f20.11")
-            //print(format)
-            //print("hello")
+            print(format)
+            
+            let input = " 234598765"
+            let res = try FortranFile.read(input: input, using: format)
+            
+            print(res)
+            print("hello")
+            
         } catch {
             print(error)
-            //print("hello")
+            print("hello")
         }
 
         

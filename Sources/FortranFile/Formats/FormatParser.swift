@@ -12,7 +12,9 @@ import Foundation
 class FormatParser {
     
     static func parse(formatString: String) throws -> FortranFile.Format {
-        let tokens = FormatTokeniser.tokenise(formatString: formatString)
+        let tokens = FormatTokeniser.tokenise(
+            formatString: formatString.uppercased())
+        
         let descriptors = try tokens.map { token in
             switch token.parse() {
             case .success(let item): return item
@@ -24,7 +26,11 @@ class FormatParser {
             }
         }
         
-        return FortranFile.Format(descriptors: descriptors)
+        let maximumWidth = descriptors.map { desc in desc.width }.max() ?? 0
+        
+        return FortranFile.Format(
+            descriptors: descriptors,
+            maximumWidth: maximumWidth)
     }
     
 }

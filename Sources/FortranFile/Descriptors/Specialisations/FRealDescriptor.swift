@@ -11,7 +11,7 @@ struct FRealDescriptor: Descriptor {
     
     typealias Output = FortranDouble
     
-    let repeats: Int
+    let repeats: Int?
     
     let width: Int
     
@@ -26,14 +26,18 @@ struct FRealDescriptor: Descriptor {
             return nil
         }
         
-        self.repeats = prefixNumber ?? 1
+        self.repeats = prefixNumber
         self.width = width
         self.decimals = decimals
     }
     
-    func describe(input: String, context: inout ReadingContext) -> FortranDouble? {
-        guard let real = Double(input) else { return nil }
-        return FortranDouble(value: real)
+    func execute(input: inout ContiguousArray<CChar>, len: Int, output: inout [any FortranValue], context: inout ReadingContext) {
+        
     }
+    
+//    func describe(input: String, context: inout ReadingContext) -> FortranDouble? {
+//        guard let real = Double(input) else { return nil }
+//        return FortranDouble(value: real)
+//    }
     
 }

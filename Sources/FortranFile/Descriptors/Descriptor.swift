@@ -7,14 +7,19 @@
 
 import Foundation
 
+// MARK: - Descriptor
+
 protocol Descriptor<Output> {
     associatedtype Output
     init?(prefixNumber: Int?, trailingWords: [String])
-    var repeats: Int { get }
+    var repeats: Int? { get }
     var width: Int { get }
     var canCommaTerminate: Bool { get }
-    func describe(input: String, context: inout ReadingContext) -> Output?
+    func execute(input: inout ContiguousArray<CChar>, len: Int, output: inout [any FortranValue], context: inout ReadingContext)
+    //func describe(input: String, context: inout ReadingContext) -> Output?
 }
+
+// MARK: - Format Parsing Helpers
 
 extension Descriptor {
     
@@ -39,4 +44,33 @@ extension Descriptor {
         return (width, decimals)
     }
     
+}
+
+// MARK: - Reading Helpers
+
+extension Descriptor {
+    
+    static func reassemble(
+        _ input: inout ContiguousArray<CChar>,
+        trimming: Bool = false
+    ) -> (String?, FortranFile.ReadError.ErrorKind?) {
+        var str: String? = nil
+        
+        input.withUnsafeBufferPointer { ptr in
+            guard var ccBase = ptr.baseAddress else {
+                return
+            }
+            
+            if trimming {
+                while ccBase.pointee == 32 || ccBase.pointee == 9 {
+                    ccBase += 1
+                }
+            }
+            
+            str = String(validatingUTF8: ccBase)
+        }
+        
+        return (str, str != nil ? nil : .internalError)
+    }
+
 }

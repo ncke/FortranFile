@@ -11,7 +11,7 @@ struct ATextDescriptor: Descriptor {
     
     typealias Output = FortranString
     
-    let repeats: Int
+    let repeats: Int?
     
     let width: Int
     
@@ -25,12 +25,16 @@ struct ATextDescriptor: Descriptor {
             return nil
         }
         
-        repeats = prefixNumber ?? 1
+        repeats = prefixNumber
         self.width = width
     }
     
-    func describe(input: String, context: inout ReadingContext) -> FortranString? {
-        return FortranString(value: input)
+    func execute(input: inout ContiguousArray<CChar>, len: Int, output: inout [any FortranValue], context: inout ReadingContext) {
+        
     }
+    
+//    func describe(input: String, context: inout ReadingContext) -> FortranString? {
+//        return FortranString(value: input)
+//    }
     
 }

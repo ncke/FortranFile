@@ -11,7 +11,7 @@ struct XSkipDescriptor: Descriptor {
 
     typealias Output = Never
     
-    let repeats: Int
+    let repeats: Int? = nil
     
     let width: Int
     
@@ -22,12 +22,15 @@ struct XSkipDescriptor: Descriptor {
             return nil
         }
         
-        repeats = 1
         width = prefixNumber
     }
     
-    func describe(input: String, context: inout ReadingContext) -> Never? {
-        return nil
+    func execute(input: inout ContiguousArray<CChar>, len: Int, output: inout [any FortranValue], context: inout ReadingContext) {
+        
     }
+    
+//    func describe(input: String, context: inout ReadingContext) -> Never? {
+//        return nil
+//    }
 
 }
