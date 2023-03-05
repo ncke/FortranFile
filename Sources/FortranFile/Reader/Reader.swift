@@ -7,7 +7,7 @@
 
 import Foundation
 
-// MARK: - Reader
+// MARK: - Reading Context
 
 class ReadingContext {
     var defaultZeroiseBlanks: Bool
@@ -28,11 +28,20 @@ struct Reader {
     let maximumWidth: Int
     let configuration: FortranFile.ReadingConfiguration
     
-    init(format: FortranFile.Format, configuration: FortranFile.ReadingConfiguration) {
+    init(
+        format: FortranFile.Format,
+        configuration: FortranFile.ReadingConfiguration
+    ) {
         self.descriptors = format.descriptors
         self.maximumWidth = format.maximumWidth
         self.configuration = configuration
     }
+    
+}
+
+// MARK: - Read
+
+extension Reader {
     
     func read(input: String) throws -> [any FortranValue] {
         var output = [any FortranValue]()
@@ -41,9 +50,11 @@ struct Reader {
             scaleFactor: 0)
         
         var field = ContiguousArray<CChar>(
-            unsafeUninitializedCapacity: maximumWidth + 1) { buffer, initializedCount in
-                initializedCount = maximumWidth + 1
-            }
+            unsafeUninitializedCapacity: maximumWidth + 1
+        ) {
+            _, initializedCount in
+            initializedCount = maximumWidth + 1
+        }
         
         var len = 0
         var readOffset = 0
@@ -115,10 +126,13 @@ struct Reader {
             readOffset += 1
             
             if context.activeZeroiseBlanks && (char == 32 || char == 9) {
-                char = 48
+                char = 48 /* 0 */
             }
             
-            if allowCommaTermination && char == 44 && descriptor.canCommaTerminate {
+            if allowCommaTermination
+                && char == 44 /* , */
+                && descriptor.canCommaTerminate
+            {
                 isForcedTermination = true
                 continue outer
             }
@@ -144,6 +158,8 @@ struct Reader {
     }
     
 }
+
+// MARK: - Read Failure
 
 enum ReadFailure: Error {
     case propagate(_ kind: FortranFile.ReadError.ErrorKind)

@@ -20,7 +20,10 @@ struct PScaleFactorDescriptor: Descriptor {
     let scaleFactor: Int
     
     init?(prefixNumber: Int?, trailingWords: [String]) {
-        guard let factor = prefixNumber, trailingWords.count == 0 else {
+        guard
+            let factor = prefixNumber,
+            trailingWords.isEmpty
+        else {
             return nil
         }
         

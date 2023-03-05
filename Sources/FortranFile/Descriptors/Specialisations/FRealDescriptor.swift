@@ -20,15 +20,18 @@ struct FRealDescriptor: Descriptor {
     let canCommaTerminate = true
     
     init?(prefixNumber: Int?, trailingWords: [String]) {
-        guard let (width, decimals) = Self.widthAndDecimalsFromTrailers(trailingWords),
-              trailingWords.count == 3
+        guard
+            let (w, d) = Self.widthAndDecimalsFromTrailers(trailingWords),
+            w > 0,
+            d >= 0,
+            trailingWords.count == 3
         else {
             return nil
         }
         
         self.repeats = prefixNumber
-        self.width = width
-        self.decimals = decimals
+        self.width = w
+        self.decimals = d
     }
     
     func execute(

@@ -18,8 +18,10 @@ struct IIntegerDescriptor: Descriptor {
     let canCommaTerminate = true
     
     init?(prefixNumber: Int?, trailingWords: [String]) {
-        guard let width = Self.widthFromTrailers(trailingWords),
-              trailingWords.count == 1
+        guard
+            let width = Self.widthFromTrailers(trailingWords),
+            width > 0,
+            trailingWords.count == 1
         else {
             return nil
         }

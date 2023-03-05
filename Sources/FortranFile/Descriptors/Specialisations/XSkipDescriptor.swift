@@ -18,7 +18,11 @@ struct XSkipDescriptor: Descriptor {
     let canCommaTerminate = false
     
     init?(prefixNumber: Int?, trailingWords: [String]) {
-        guard let prefixNumber = prefixNumber, trailingWords.isEmpty else {
+        guard
+            let prefixNumber = prefixNumber,
+            prefixNumber > 0,
+            trailingWords.isEmpty
+        else {
             return nil
         }
         

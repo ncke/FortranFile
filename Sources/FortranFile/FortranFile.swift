@@ -9,6 +9,11 @@ extension FortranFile {
     public struct Format {
         let descriptors: [any Descriptor]
         let maximumWidth: Int
+        
+        internal init(descriptors: [any Descriptor], maximumWidth: Int) {
+            self.descriptors = descriptors
+            self.maximumWidth = maximumWidth
+        }
     }
     
     public static func format(from string: String) throws -> Format {
@@ -23,10 +28,11 @@ extension FortranFile {
     
     public struct FormatError: FortranFileError {
 
-        public enum ErrorKind: String, CustomStringConvertible {
+        @frozen public enum ErrorKind: String, CustomStringConvertible {
             public var description: String { self.rawValue }
-            case badDescriptor = "Bad descriptor"
+            case badDescriptor = "Bad descriptor definition"
             case expectedDescriptor = "Expected a descriptor"
+            case internalError = "Internal error"
             case unrecognisedDescriptor = "Unrecognised descriptor"
         }
         
@@ -80,4 +86,40 @@ extension FortranFile {
         public let length: Int
     }
     
+}
+
+// MARK: - Fortran Values
+
+public protocol FortranValue {
+    associatedtype T
+    var value: T { get }
+}
+
+@frozen public struct FortranDouble: FortranValue {
+    public typealias T = Double
+    public let value: Double
+}
+
+@frozen public struct FortranInteger: FortranValue {
+    public typealias T = Int
+    public let value: Int
+}
+
+@frozen public struct FortranLogical: FortranValue {
+    public typealias T = Bool
+    public let value: Bool
+}
+
+@frozen public struct FortranString: FortranValue {
+    public typealias T = String
+    public let value: String
+}
+
+@frozen public struct FortranArray: FortranValue {
+    public typealias T = [any FortranValue]
+    public let value: T
+    
+    @inlinable public subscript(index: Int) -> any FortranValue {
+        get { value[index] }
+    }
 }

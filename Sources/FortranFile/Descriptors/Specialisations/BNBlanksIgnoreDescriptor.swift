@@ -18,7 +18,10 @@ struct BNBlanksIgnoreDescriptor: Descriptor {
     let canCommaTerminate = false
     
     init?(prefixNumber: Int?, trailingWords: [String]) {
-        guard prefixNumber == nil, trailingWords.count == 0 else {
+        guard
+            prefixNumber == nil,
+            trailingWords.count == 0
+        else {
             return nil
         }
         

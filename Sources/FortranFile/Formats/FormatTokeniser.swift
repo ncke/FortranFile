@@ -83,7 +83,10 @@ extension FormatTokeniser {
         }
         
         for char in string {
-            var isWordStart = char == "," || char == " " || char == "." || char.isSign
+            var isWordStart = char == ","
+            || char == " "
+            || char == "."
+            || char.isSign
             
             if let previous = previous {
                 isWordStart = isWordStart

@@ -16,15 +16,8 @@ extension Array {
     var third: Element? { self.count > 2 ? self[2] : nil }
     
     var fourth: Element? { self.count > 3 ? self[3] : nil }
-    
-    mutating func takeFirst() -> Element? {
-        let result = self.first
-        self = Array(self.dropFirst())
-        return result
-    }
 
 }
-
 
 // MARK: - Character Concatenation
 
