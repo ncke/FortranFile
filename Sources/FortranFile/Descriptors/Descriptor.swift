@@ -72,5 +72,47 @@ extension Descriptor {
         
         return str
     }
+    
+    static func reassembleRealParts(
+        _ input: inout ContiguousArray<CChar>
+    ) -> (String?, String?, Bool) {
+        var real: String? = nil
+        var expo: String? = nil
+        var hasPoint: Bool = false
+        
+        input.withUnsafeMutableBufferPointer { ptr in
+            guard var ccBase = ptr.baseAddress else {
+                return
+            }
+            
+            while ccBase.pointee == 32 || ccBase.pointee == 9 {
+                ccBase += 1
+            }
+            
+            var isInsideExponent = false
+            var ccScan = ccBase
+            
+            while ccScan.pointee != 0 {
+                if ccScan.pointee == 69 || ccScan.pointee == 101 {
+                    isInsideExponent = true
+                    ccScan.pointee = 0
+                    real = String(validatingUTF8: ccBase)
+                    ccBase = ccScan + 1
+                } else if !isInsideExponent && ccScan.pointee == 46 {
+                    hasPoint = true
+                }
+                
+                ccScan += 1
+            }
+            
+            if isInsideExponent {
+                expo = String(validatingUTF8: ccBase)
+            } else {
+                real = String(validatingUTF8: ccBase)
+            }
+        }
+        
+        return (real, expo, hasPoint)
+    }
 
 }

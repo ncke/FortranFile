@@ -83,12 +83,12 @@ extension FormatTokeniser {
         }
         
         for char in string {
-            var isWordStart = char == "," || char == " " || char == "."
+            var isWordStart = char == "," || char == " " || char == "." || char.isSign
             
             if let previous = previous {
                 isWordStart = isWordStart
                 || char.isLetter && !previous.isLetter
-                || char.isNumber && !previous.isNumber
+                || char.isNumber && !previous.isNumber && !previous.isSign
             }
                         
             if isWordStart { addWord() }
@@ -114,8 +114,13 @@ extension FormatTokeniser {
         }
         
         for word in words {
-            if word.content == "," || word.content == " " && !chunk.isEmpty {
+            if word.content == "," {
                 addChunk()
+                continue
+            }
+            
+            if word.content == " " {
+                if !chunk.isEmpty { addChunk() }
                 continue
             }
             
@@ -125,5 +130,13 @@ extension FormatTokeniser {
         if !chunk.isEmpty { addChunk() }
         return chunks
     }
+    
+}
+
+// MARK: - Character Helper
+
+fileprivate extension Character {
+    
+    var isSign: Bool { self == "-" || self == "+" }
     
 }

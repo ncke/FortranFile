@@ -12,9 +12,9 @@ import Foundation
 class ReadingContext {
     var defaultZeroiseBlanks: Bool
     var activeZeroiseBlanks: Bool
-    var scaleFactor: Double
+    var scaleFactor: Int
     
-    init(defaultZeroiseBlanks: Bool, scaleFactor: Double) {
+    init(defaultZeroiseBlanks: Bool, scaleFactor: Int) {
         self.defaultZeroiseBlanks = defaultZeroiseBlanks
         self.activeZeroiseBlanks = defaultZeroiseBlanks
         self.scaleFactor = scaleFactor
@@ -38,7 +38,7 @@ struct Reader {
         var output = [any FortranValue]()
         var context = ReadingContext(
             defaultZeroiseBlanks: configuration.defaultZeroiseBlanks,
-            scaleFactor: 1.0)
+            scaleFactor: 0)
         
         var field = ContiguousArray<CChar>(
             unsafeUninitializedCapacity: maximumWidth + 1) { buffer, initializedCount in

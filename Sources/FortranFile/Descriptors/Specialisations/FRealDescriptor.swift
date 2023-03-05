@@ -37,15 +37,38 @@ struct FRealDescriptor: Descriptor {
         output: inout [any FortranValue],
         context: inout ReadingContext
     ) throws {
-        guard let str = Self.reassemble(&input, trimming: true) else {
-            throw ReadFailure.propagate(.internalError)
-        }
+        let (rstr, estr, hasPoint) = Self.reassembleRealParts(&input)
         
-        guard let real = Double(str) else {
+        guard var realStr = rstr else {
             throw ReadFailure.propagate(.expectedReal)
         }
         
-        let result = FortranDouble(value: real)
+        if !hasPoint {
+            let fracPart = realStr.suffix(decimals)
+            let intPart = realStr.prefix(realStr.count - fracPart.count)
+            realStr = intPart + "." + fracPart
+        }
+        
+        if estr != nil || context.scaleFactor != 0 {
+            
+            var expo = -context.scaleFactor
+            
+            if let expoInputStr = estr {
+                guard let expoInput = Int(expoInputStr) else {
+                    throw ReadFailure.propagate(.expectedReal)
+                }
+                
+                expo += expoInput
+            }
+            
+            realStr += "E" + String(expo)
+        }
+        
+        guard let value = Double(realStr) else {
+            throw ReadFailure.propagate(.expectedReal)
+        }
+        
+        let result = FortranDouble(value: value)
         output.append(result)
     }
     

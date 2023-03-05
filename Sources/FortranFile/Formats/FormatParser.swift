@@ -44,6 +44,7 @@ fileprivate extension FormatTokeniser.Token {
         "BZ":   BZBlanksZeroiseDescriptor.self,
         "F":    FRealDescriptor.self,
         "I":    IIntegerDescriptor.self,
+        "P":    PScaleFactorDescriptor.self,
         "X":    XSkipDescriptor.self
     ]
     
