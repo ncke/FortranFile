@@ -11,12 +11,19 @@ import Foundation
 
 protocol Descriptor<Output> {
     associatedtype Output
-    init?(prefixNumber: Int?, trailingWords: [String])
+    
     var repeats: Int? { get }
     var width: Int { get }
     var canCommaTerminate: Bool { get }
-    func execute(input: inout ContiguousArray<CChar>, len: Int, output: inout [any FortranValue], context: inout ReadingContext) throws
-    //func describe(input: String, context: inout ReadingContext) -> Output?
+    
+    init?(prefixNumber: Int?, trailingWords: [String])
+    
+    func execute(
+        input: inout ContiguousArray<CChar>,
+        len: Int,
+        output: inout [any FortranValue],
+        context: inout ReadingContext
+    ) throws
 }
 
 // MARK: - Format Parsing Helpers
@@ -50,6 +57,7 @@ extension Descriptor {
 
 extension Descriptor {
     
+    @inline(__always)
     static func reassemble(
         _ input: inout ContiguousArray<CChar>,
         trimming: Bool = false
@@ -73,6 +81,7 @@ extension Descriptor {
         return str
     }
     
+    @inline(__always)
     static func reassembleRealParts(
         _ input: inout ContiguousArray<CChar>
     ) -> (String?, String?, Bool) {
