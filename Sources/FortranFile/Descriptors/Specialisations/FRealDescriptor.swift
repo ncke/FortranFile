@@ -31,13 +31,22 @@ struct FRealDescriptor: Descriptor {
         self.decimals = decimals
     }
     
-    func execute(input: inout ContiguousArray<CChar>, len: Int, output: inout [any FortranValue], context: inout ReadingContext) {
+    func execute(
+        input: inout ContiguousArray<CChar>,
+        len: Int,
+        output: inout [any FortranValue],
+        context: inout ReadingContext
+    ) throws {
+        guard let str = Self.reassemble(&input, trimming: true) else {
+            throw ReadFailure.propagate(.internalError)
+        }
         
+        guard let real = Double(str) else {
+            throw ReadFailure.propagate(.expectedReal)
+        }
+        
+        let result = FortranDouble(value: real)
+        output.append(result)
     }
-    
-//    func describe(input: String, context: inout ReadingContext) -> FortranDouble? {
-//        guard let real = Double(input) else { return nil }
-//        return FortranDouble(value: real)
-//    }
     
 }

@@ -15,7 +15,7 @@ protocol Descriptor<Output> {
     var repeats: Int? { get }
     var width: Int { get }
     var canCommaTerminate: Bool { get }
-    func execute(input: inout ContiguousArray<CChar>, len: Int, output: inout [any FortranValue], context: inout ReadingContext)
+    func execute(input: inout ContiguousArray<CChar>, len: Int, output: inout [any FortranValue], context: inout ReadingContext) throws
     //func describe(input: String, context: inout ReadingContext) -> Output?
 }
 
@@ -53,7 +53,7 @@ extension Descriptor {
     static func reassemble(
         _ input: inout ContiguousArray<CChar>,
         trimming: Bool = false
-    ) -> (String?, FortranFile.ReadError.ErrorKind?) {
+    ) -> String? {
         var str: String? = nil
         
         input.withUnsafeBufferPointer { ptr in
@@ -70,7 +70,7 @@ extension Descriptor {
             str = String(validatingUTF8: ccBase)
         }
         
-        return (str, str != nil ? nil : .internalError)
+        return str
     }
 
 }

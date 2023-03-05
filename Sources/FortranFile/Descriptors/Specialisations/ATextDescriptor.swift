@@ -29,12 +29,18 @@ struct ATextDescriptor: Descriptor {
         self.width = width
     }
     
-    func execute(input: inout ContiguousArray<CChar>, len: Int, output: inout [any FortranValue], context: inout ReadingContext) {
+    func execute(
+        input: inout ContiguousArray<CChar>,
+        len: Int,
+        output: inout [any FortranValue],
+        context: inout ReadingContext
+    ) throws {
+        guard let str = Self.reassemble(&input) else {
+            throw ReadFailure.propagate(.internalError)
+        }
         
+        let result = FortranString(value: str)
+        output.append(result)
     }
-    
-//    func describe(input: String, context: inout ReadingContext) -> FortranString? {
-//        return FortranString(value: input)
-//    }
     
 }

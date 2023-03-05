@@ -25,12 +25,13 @@ struct XSkipDescriptor: Descriptor {
         width = prefixNumber
     }
     
-    func execute(input: inout ContiguousArray<CChar>, len: Int, output: inout [any FortranValue], context: inout ReadingContext) {
-        
+    func execute(
+        input: inout ContiguousArray<CChar>,
+        len: Int,
+        output: inout [any FortranValue],
+        context: inout ReadingContext
+    ) {
+        // Skip is a no-op.
     }
-    
-//    func describe(input: String, context: inout ReadingContext) -> Never? {
-//        return nil
-//    }
 
 }

@@ -33,28 +33,17 @@ struct IIntegerDescriptor: Descriptor {
         len: Int,
         output: inout [any FortranValue],
         context: inout ReadingContext
-    ) {
-        let (str, err) = Self.reassemble(&input, trimming: true)
-        
-        if let errorKind = err {
-            fatalError()
-        }
-        
-        guard let str = str else {
-            fatalError()
+    ) throws {
+        guard let str = Self.reassemble(&input, trimming: true) else {
+            throw ReadFailure.propagate(.internalError)
         }
         
         guard let integer = Int(str) else {
-            fatalError()
+            throw ReadFailure.propagate(.expectedInteger)
         }
         
         let result = FortranInteger(value: integer)
         output.append(result)
     }
-    
-//    func describe(input: String, context: inout ReadingContext) -> FortranInteger? {
-//        guard let integer = Int(input) else { return nil }
-//        return FortranInteger(value: integer)
-//    }
   
 }
