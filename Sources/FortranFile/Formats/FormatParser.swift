@@ -28,9 +28,14 @@ class FormatParser {
         
         let maximumWidth = descriptors.map { desc in desc.width }.max() ?? 0
         
+        let expectedCapacity = descriptors
+            .filter { desc in desc.width > 0 }
+            .count
+        
         return FortranFile.Format(
             descriptors: descriptors,
-            maximumWidth: maximumWidth)
+            maximumWidth: maximumWidth,
+            expectedCapacity: expectedCapacity)
     }
     
 }

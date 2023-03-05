@@ -26,6 +26,7 @@ class ReadingContext {
 struct Reader {
     let descriptors: [any Descriptor]
     let maximumWidth: Int
+    let expectedCapacity: Int
     let configuration: FortranFile.ReadingConfiguration
     
     init(
@@ -34,6 +35,7 @@ struct Reader {
     ) {
         self.descriptors = format.descriptors
         self.maximumWidth = format.maximumWidth
+        self.expectedCapacity = format.expectedCapacity
         self.configuration = configuration
     }
     
@@ -45,6 +47,8 @@ extension Reader {
     
     func read(input: String) throws -> [any FortranValue] {
         var output = [any FortranValue]()
+        output.reserveCapacity(expectedCapacity)
+        
         var context = ReadingContext(
             defaultZeroiseBlanks: configuration.defaultZeroiseBlanks,
             scaleFactor: 0)
