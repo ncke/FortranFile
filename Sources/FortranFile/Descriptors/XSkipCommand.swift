@@ -11,8 +11,8 @@ struct XSkipCommand: Command {
     
     let skip: Int
     
-    init?(prefix: Int, formatWords: [String]) {
-        skip = prefix
+    init?(prefix: Int?, formatWords: [String]) {
+        skip = prefix ?? 1
     }
     
     func execute(context: inout ReadingContext) {

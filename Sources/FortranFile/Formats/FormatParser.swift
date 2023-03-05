@@ -7,7 +7,7 @@
 
 import Foundation
 
-// MARK: - Format Parser
+// MARK: - Available Descriptors
 
 struct FormatParser {
     
@@ -23,112 +23,120 @@ struct FormatParser {
     
 }
 
-// MARK: - Parsing
+// MARK: - Format Parsing
 
 extension FormatParser {
     
-    typealias FormatUnit = (offset: String.Index, content: [String])
-    
-    private typealias Word = (offset: String.Index, content: String)
+    private typealias FormatUnit = (offset: String.Index, content: [String])
     
     static func parse(formatString: String) throws -> FortranFile.Format {
         var items = [FortranFile.Format.FormatItem]()
-        let words = splitIntoWords(formatString)
-        let units = aggregateIntoUnits(words)
+        let units = deconstruct(formatString: formatString)
         
         for unit in units {
             var remaining = unit.content
             
-            func error(
-                _ kind: FortranFile.FormatError.ErrorKind
-            ) -> FortranFile.FormatError {
-                let length = unit.content.reduce(0) { partial, str in
-                    partial + str.count
+            func take() throws -> String {
+                guard let str = remaining.first else {
+                    throw makeError(.expectedDescriptor, unit, formatString)
                 }
-                
-                return FortranFile.FormatError(
-                    kind: kind,
-                    input: formatString,
-                    offset: unit.offset,
-                    length: max(length, 1))
-            }
-            
-            guard let word = remaining.first else {
-                throw error(.expectedDescriptor)
-            }
-            
-            let repeatCount: Int
-            if let parsedCount = Int(word) {
-                repeatCount = parsedCount
                 remaining = Array(remaining.dropFirst())
-            } else {
-                repeatCount = 1
+                return str
             }
             
-            guard let code = remaining.first?.uppercased() else {
-                throw error(.expectedDescriptor)
+            var word = try take()
+            let prefixInt = Int(word)
+            if prefixInt != nil {
+                word = try take()
             }
             
-            remaining = Array(remaining.dropFirst())
-            
-            if let descriptorType = descriptors[code] {
-                guard let descriptor = descriptorType.init(
+            if let descriptorType = descriptors[word] {
+                guard let item = makeDescriptor(
+                    repeatCount: prefixInt,
+                    descriptorType: descriptorType,
                     formatWords: remaining)
                 else {
-                    throw error(.badDescriptor)
+                    throw makeError(.badDescriptor, unit, formatString)
                 }
-                
-                let item = FortranFile.Format.FormatItem.descriptor(
-                    descriptor: descriptor,
-                    repeatCount: repeatCount)
                 
                 items.append(item)
                 continue
             }
             
-            if let commandType = commands[code] {
-                guard let command = commandType.init(
-                    prefix: repeatCount,
+            if let commandType = commands[word] {
+                guard let item = makeCommand(
+                    prefixInt: prefixInt,
+                    commandType: commandType,
                     formatWords: remaining)
                 else {
-                    throw error(.badDescriptor)
+                    throw makeError(.badDescriptor, unit, formatString)
                 }
-                
-                let item = FortranFile.Format.FormatItem.command(
-                    command: command)
                 
                 items.append(item)
                 continue
             }
             
-            throw error(.expectedDescriptor)
+            throw makeError(.expectedDescriptor, unit, formatString)
         }
         
         return FortranFile.Format(items: items)
     }
     
-    private static func aggregateIntoUnits(_ words: [Word]) -> [FormatUnit] {
-        var tokens = [FormatUnit]()
-        var tokenWords = [Word]()
-        
-        func consume() {
-            guard let offset = tokenWords.first?.offset else { return }
-            tokens.append((offset, tokenWords.map { word in word.content }))
-            tokenWords = []
-        }
-        
-        for word in words {
-            if word.content == "," || word.content == " " {
-                consume()
-                continue
-            }
-            
-            tokenWords.append(word)
-        }
-        
-        consume()
+}
 
-        return tokens
+// MARK: - Descriptor Constructor
+
+extension FormatParser {
+    
+    private static func makeDescriptor(
+        repeatCount: Int?,
+        descriptorType: any Descriptor.Type,
+        formatWords: [String]
+    ) -> FortranFile.Format.FormatItem? {
+        guard let descriptor = descriptorType.init(formatWords: formatWords)
+        else {
+            return nil
+        }
+        
+        return FortranFile.Format.FormatItem.descriptor(
+            descriptor: descriptor,
+            repeatCount: repeatCount ?? 1)
+    }
+    
+}
+
+// MARK: - Command Constructor
+
+extension FormatParser {
+    
+    private static func makeCommand(
+        prefixInt: Int?,
+        commandType: any Command.Type,
+        formatWords: [String]
+    ) -> FortranFile.Format.FormatItem? {
+        guard let command = commandType.init(
+            prefix: prefixInt,
+            formatWords: formatWords)
+        else {
+            return nil
+        }
+        
+        return FortranFile.Format.FormatItem.command(command: command)
+    }
+    
+}
+
+// MARK: - String Manipulation
+
+extension FormatParser {
+    
+    private typealias Word = (offset: String.Index, content: String)
+    
+    private static func deconstruct(formatString: String) -> [FormatUnit] {
+        let words = splitIntoWords(formatString)
+        let units = aggregateIntoUnits(words)
+        
+        return units
     }
     
     private static func splitIntoWords(_ string: String) -> [Word] {
@@ -171,6 +179,52 @@ extension FormatParser {
         consume()
         
         return words
+    }
+    
+    private static func aggregateIntoUnits(_ words: [Word]) -> [FormatUnit] {
+        var tokens = [FormatUnit]()
+        var tokenWords = [Word]()
+        
+        func consume() {
+            guard let offset = tokenWords.first?.offset else { return }
+            tokens.append((offset, tokenWords.map { word in word.content }))
+            tokenWords = []
+        }
+        
+        for word in words {
+            if word.content == "," || word.content == " " {
+                consume()
+                continue
+            }
+            
+            tokenWords.append(word)
+        }
+        
+        consume()
+        
+        return tokens
+    }
+    
+}
+
+// MARK: - Error Helper
+
+extension FormatParser {
+    
+    private static func makeError(
+        _ kind: FortranFile.FormatError.ErrorKind,
+        _ unit: FormatUnit,
+        _ formatString: String
+    ) -> FortranFile.FormatError {
+        let length = unit.content.reduce(0) { partial, str in
+            partial + str.count
+        }
+        
+        return FortranFile.FormatError(
+            kind: kind,
+            input: formatString,
+            offset: unit.offset,
+            length: max(length, 1))
     }
     
 }

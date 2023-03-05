@@ -8,7 +8,7 @@
 import Foundation
 
 protocol Command {
-    init?(prefix: Int, formatWords: [String])
+    init?(prefix: Int?, formatWords: [String])
     func execute(context: inout ReadingContext)
 }
 
