@@ -38,6 +38,14 @@ final class FormatParserTests: XCTestCase {
             print(res3)
             print("hello")
             
+            let format4 = try FormatParser.parse(formatString: "2x, l4, l4, l6")
+            let input4 = "  .TRU  .F .FALS"
+            
+            let res4 = try FortranFile.read(input: input4, using: format4)
+            
+            print(res4)
+            print("hello")
+            
         } catch {
             print(error)
             print("hello")
