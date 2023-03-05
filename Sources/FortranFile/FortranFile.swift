@@ -42,11 +42,18 @@ extension FortranFile {
 
 extension FortranFile {
     
+    public struct ReadingConfiguration {
+        public static let common = ReadingConfiguration()
+        public var defaultZeroiseBlanks = false
+        public var shouldAllowCommaTermination = false
+    }
+    
     public static func read(
         input: String,
-        using format: Format
+        using format: Format,
+        configuration: ReadingConfiguration = ReadingConfiguration.common
     ) throws -> [any FortranValue] {
-        let reader = Reader(format: format)
+        let reader = Reader(format: format, configuration: configuration)
         return try reader.read(input: input)
     }
     

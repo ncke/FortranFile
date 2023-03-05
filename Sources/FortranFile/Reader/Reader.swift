@@ -10,14 +10,14 @@ import Foundation
 // MARK: - Reader
 
 class ReadingContext {
-    let input: String
-    var offset: String.Index
-    var shouldZeroiseBlanks = false
-    var scaleFactor: Double = 1.0
+    var defaultZeroiseBlanks: Bool
+    var activeZeroiseBlanks: Bool
+    var scaleFactor: Double
     
-    init(input: String) {
-        self.input = input
-        self.offset = input.startIndex
+    init(defaultZeroiseBlanks: Bool, scaleFactor: Double) {
+        self.defaultZeroiseBlanks = defaultZeroiseBlanks
+        self.activeZeroiseBlanks = defaultZeroiseBlanks
+        self.scaleFactor = scaleFactor
     }
 }
 
@@ -26,16 +26,19 @@ class ReadingContext {
 struct Reader {
     let descriptors: [any Descriptor]
     let maximumWidth: Int
-    let allowCommaTermination = true
+    let configuration: FortranFile.ReadingConfiguration
     
-    init(format: FortranFile.Format) {
-        descriptors = format.descriptors
-        maximumWidth = format.maximumWidth
+    init(format: FortranFile.Format, configuration: FortranFile.ReadingConfiguration) {
+        self.descriptors = format.descriptors
+        self.maximumWidth = format.maximumWidth
+        self.configuration = configuration
     }
     
     func read(input: String) throws -> [any FortranValue] {
         var output = [any FortranValue]()
-        var context = ReadingContext(input: input)
+        var context = ReadingContext(
+            defaultZeroiseBlanks: configuration.defaultZeroiseBlanks,
+            scaleFactor: 1.0)
         
         var field = ContiguousArray<CChar>(
             unsafeUninitializedCapacity: maximumWidth + 1) { buffer, initializedCount in
@@ -44,6 +47,7 @@ struct Reader {
         
         var len = 0
         var readOffset = 0
+        let allowCommaTermination = configuration.shouldAllowCommaTermination
         var isForcedTermination = false
         var repeatIteration: Int?
         var repeatOutput: [any FortranValue]!
@@ -110,7 +114,7 @@ struct Reader {
             
             readOffset += 1
             
-            if context.shouldZeroiseBlanks && (char == 32 || char == 9) {
+            if context.activeZeroiseBlanks && (char == 32 || char == 9) {
                 char = 48
             }
             

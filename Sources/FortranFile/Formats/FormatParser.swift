@@ -38,10 +38,13 @@ class FormatParser {
 fileprivate extension FormatTokeniser.Token {
     
     private static let codeMap: [String: any Descriptor.Type] = [
-        "A": ATextDescriptor.self,
-        "F": FRealDescriptor.self,
-        "I": IIntegerDescriptor.self,
-        "X": XSkipDescriptor.self
+        "A":    ATextDescriptor.self,
+        "B":    BBlanksDefaultDescriptor.self,
+        "BN":   BNBlanksIgnoreDescriptor.self,
+        "BZ":   BZBlanksZeroiseDescriptor.self,
+        "F":    FRealDescriptor.self,
+        "I":    IIntegerDescriptor.self,
+        "X":    XSkipDescriptor.self
     ]
     
     enum ParsingOutcome {

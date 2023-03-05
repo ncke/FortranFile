@@ -22,6 +22,14 @@ final class FormatParserTests: XCTestCase {
             print(res)
             print("hello")
             
+            let format2 = try FormatParser.parse(formatString: "i5,bz,i5,bn,i5")
+            let input2 = "  111 2 22  33  "
+            
+            let res2 = try FortranFile.read(input: input2, using: format2)
+            
+            print(res2)
+            print("hello")
+            
         } catch {
             print(error)
             print("hello")
