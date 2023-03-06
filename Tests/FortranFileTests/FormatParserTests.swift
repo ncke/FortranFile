@@ -9,8 +9,41 @@ import XCTest
 @testable import FortranFile
 
 final class FormatParserTests: XCTestCase {
+    
+    func testCorrectFormats() {
+        do {
+            
+            let f1 = "1x,4i1,i5,4x,4a2,f5.2"
+            _ = try FortranFile.format(from: f1)
+            
+            let f2 = "9a3,l5,f20.3"
+            _ = try FortranFile.format(from: f2)
+            
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+    }
+    
+    func testCorrectButDegenerateSpacing() {
+        do {
+            
+            let f1 = "8f3.2  9a5  2x "
+            _ = try FortranFile.format(from: f1)
+            
+            let f2 = "   1x"
+            _ = try FortranFile.format(from: f2)
+            
+            let f3 = "9a5    2x "
+            _ = try FortranFile.format(from: f3)
+            
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+    }
+    
+    
 
-    func testParser() throws {
+    func testRandomThings() throws {
 
         do {
             let format = try FormatParser.parse(formatString: "1x,4i1,i5,4x,4a2,f5.2")
