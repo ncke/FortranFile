@@ -101,7 +101,6 @@ extension Reader {
                     let fortranArray = FortranArray(value: repeatOutput)
                     output.append(fortranArray)
                     repeatIteration = nil
-                    repeatOutput = []
                 } else {
                     break inner
                 }
@@ -123,6 +122,7 @@ extension Reader {
             if let repeats = next.repeats {
                 repeatIteration = repeats
                 repeatOutput = []
+                repeatOutput.reserveCapacity(repeats)
             }
             
         } /* inner */
