@@ -1,10 +1,3 @@
-//
-//  Reader.swift
-//  
-//
-//  Created by Nick on 21/02/2023.
-//
-
 import Foundation
 
 // MARK: - Reading Context

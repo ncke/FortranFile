@@ -1,10 +1,3 @@
-//
-//  BZBlanksZeroiseDescriptor.swift
-//  
-//
-//  Created by Nick on 05/03/2023.
-//
-
 import Foundation
 
 struct BZBlanksZeroiseDescriptor: Descriptor {

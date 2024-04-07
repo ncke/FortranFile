@@ -1,10 +1,3 @@
-//
-//  ReaderTests.swift
-//  
-//
-//  Created by Nick on 21/02/2023.
-//
-
 import XCTest
 @testable import FortranFile
 

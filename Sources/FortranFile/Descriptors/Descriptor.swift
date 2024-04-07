@@ -1,10 +1,3 @@
-//
-//  Descriptor.swift
-//  
-//
-//  Created by Nick on 20/02/2023.
-//
-
 import Foundation
 
 // MARK: - Descriptor
@@ -38,7 +31,9 @@ extension Descriptor {
         return Int(firstTrailer)
     }
     
-    static func widthAndDecimalsFromTrailers(_ trailingWords: [String]) -> (Int, Int)? {
+    static func widthAndDecimalsFromTrailers(
+        _ trailingWords: [String]
+    ) -> (Int, Int)? {
         guard let width = widthFromTrailers(trailingWords),
               let point = trailingWords.second,
               point == ".",

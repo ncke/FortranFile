@@ -1,10 +1,3 @@
-//
-//  FortranFileError.swift
-//  
-//
-//  Created by Nick on 05/03/2023.
-//
-
 import Foundation
 
 // MARK: - Fortran File Error
@@ -27,7 +20,7 @@ extension FortranFileError {
     
     public var description: String {
         let hats = String(repeating: " ", count: offset)
-        + String(repeating: "^", count: length)
+            + String(repeating: "^", count: length)
         
         return """
             Error parsing format: \

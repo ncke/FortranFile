@@ -1,10 +1,3 @@
-//
-//  ATextDescriptor.swift
-//  
-//
-//  Created by Nick on 26/02/2023.
-//
-
 import Foundation
 
 struct ATextDescriptor: Descriptor {

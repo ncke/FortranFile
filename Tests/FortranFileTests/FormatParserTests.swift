@@ -1,10 +1,3 @@
-//
-//  FormatParserTests.swift
-//  
-//
-//  Created by Nick on 20/02/2023.
-//
-
 import XCTest
 @testable import FortranFile
 
@@ -40,42 +33,40 @@ final class FormatParserTests: XCTestCase {
             XCTFail(error.localizedDescription)
         }
     }
-    
-    
 
     func testRandomThings() throws {
 
         do {
-            let format = try FormatParser.parse(formatString: "1x,4i1,i5,4x,4a2,f5.2")
-            print(format)
-            
+            let f1 = try FormatParser.parse(formatString: "1x,4i1,i5,4x,4a2,f5.2")
+            print(f1)
+
             let input = " 234598765    AABBCCDD12.34"
-            let res = try FortranFile.read(input: input, using: format)
-            
+            let res = try FortranFile.read(input: input, using: f1)
+
             print(res)
             print("hello")
             
-            let format2 = try FormatParser.parse(formatString: "i5,bz,i5,i5")
+            let f2 = try FormatParser.parse(formatString: "i5,bz,i5,i5")
             let input2 = "  111 2 22  33  "
             
-            let res2 = try FortranFile.read(input: input2, using: format2)
-            
+            let res2 = try FortranFile.read(input: input2, using: f2)
+
             print(res2)
             print("hello")
             
-            let format3 = try FormatParser.parse(formatString: "f6.2, -2p, f6.1, f6.2")
+            let f3 = try FormatParser.parse(formatString: "f6.2, -2p, f6.1, f6.2")
             let input3 = "123456123456 -12.3"
             
-            let res3 = try FortranFile.read(input: input3, using: format3)
-            
+            let res3 = try FortranFile.read(input: input3, using: f3)
+
             print(res3)
             print("hello")
             
-            let format4 = try FormatParser.parse(formatString: "2x, l4, l4, l6")
+            let f4 = try FormatParser.parse(formatString: "2x, l4, l4, l6")
             let input4 = "  .TRU  .F .FALS"
             
-            let res4 = try FortranFile.read(input: input4, using: format4)
-            
+            let res4 = try FortranFile.read(input: input4, using: f4)
+
             print(res4)
             print("hello")
             

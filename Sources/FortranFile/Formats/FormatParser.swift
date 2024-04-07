@@ -1,10 +1,3 @@
-//
-//  FormatParser.swift
-//  
-//
-//  Created by Nick on 20/02/2023.
-//
-
 import Foundation
 
 // MARK: - Parser

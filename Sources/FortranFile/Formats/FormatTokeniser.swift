@@ -1,10 +1,3 @@
-//
-//  FormatTokeniser.swift
-//  
-//
-//  Created by Nick on 05/03/2023.
-//
-
 import Foundation
 
 // MARK: - Format Tokeniser
