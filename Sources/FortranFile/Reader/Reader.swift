@@ -16,12 +16,12 @@ class ReadingContext {
 
 // MARK: - Reader
 
-struct Reader {
+public struct Reader: Sendable {
     let descriptors: [any Descriptor]
     let maximumWidth: Int
     let expectedCapacity: Int
-    let configuration: FortranFile.ReadingConfiguration
-    
+    public let configuration: FortranFile.ReadingConfiguration
+
     init(
         format: FortranFile.Format,
         configuration: FortranFile.ReadingConfiguration
@@ -38,7 +38,7 @@ struct Reader {
 
 extension Reader {
     
-    func read(input: String) throws -> [any FortranFile.Value] {
+    public func read(input: String) throws -> [any FortranFile.Value] {
         var output = [any FortranFile.Value]()
         output.reserveCapacity(expectedCapacity)
         

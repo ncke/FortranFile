@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - Descriptor
 
-protocol Descriptor<Output> {
+protocol Descriptor<Output>: Sendable {
     associatedtype Output
     
     var repeats: Int? { get }

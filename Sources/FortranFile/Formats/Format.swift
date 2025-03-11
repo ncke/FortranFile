@@ -4,7 +4,7 @@ import Foundation
 
 extension FortranFile {
 
-    public struct Format {
+    public struct Format: Sendable {
         let descriptors: [any Descriptor]
         let maximumWidth: Int
         let expectedCapacity: Int
