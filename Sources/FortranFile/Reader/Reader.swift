@@ -38,8 +38,8 @@ struct Reader {
 
 extension Reader {
     
-    func read(input: String) throws -> [any FortranValue] {
-        var output = [any FortranValue]()
+    func read(input: String) throws -> [any FortranFile.Value] {
+        var output = [any FortranFile.Value]()
         output.reserveCapacity(expectedCapacity)
         
         var context = ReadingContext(
@@ -55,11 +55,12 @@ extension Reader {
         
         var len = 0
         var readOffset = 0
+        let flattenArrays = configuration.shouldFlattenArrays
         let allowCommaTermination = configuration.shouldAllowCommaTermination
         var isForcedTermination = false
         var repeatIteration: Int?
-        var repeatOutput: [any FortranValue]!
-        
+        var repeatOutput: [any FortranFile.Value]!
+
         var descIterator = self.descriptors.makeIterator()
         guard var descriptor = descIterator.next() else { return [] }
         
@@ -91,8 +92,15 @@ extension Reader {
                 repeatIteration = iteration
                 
                 if iteration <= 0 {
-                    let fortranArray = FortranArray(value: repeatOutput)
-                    output.append(fortranArray)
+
+                    if flattenArrays {
+                        output += repeatOutput
+                    } else {
+                        let fortranArray = FortranFile.FortranArray(
+                            value: repeatOutput)
+                        output.append(fortranArray)
+                    }
+
                     repeatIteration = nil
                 } else {
                     break inner

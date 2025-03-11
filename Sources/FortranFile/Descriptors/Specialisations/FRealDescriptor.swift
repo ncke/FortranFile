@@ -2,8 +2,8 @@ import Foundation
 
 struct FRealDescriptor: Descriptor {
     
-    typealias Output = FortranDouble
-    
+    typealias Output = FortranFile.FortranDouble
+
     let repeats: Int?
     
     let width: Int
@@ -30,7 +30,7 @@ struct FRealDescriptor: Descriptor {
     func execute(
         input: inout ContiguousArray<CChar>,
         len: Int,
-        output: inout [any FortranValue],
+        output: inout [any FortranFile.Value],
         context: inout ReadingContext
     ) throws {
         let (rstr, estr, hasPoint) = Self.reassembleRealParts(&input)
@@ -64,7 +64,7 @@ struct FRealDescriptor: Descriptor {
             throw ReadFailure.propagate(.expectedReal)
         }
         
-        let result = FortranDouble(value: value)
+        let result = FortranFile.FortranDouble(value: value)
         output.append(result)
     }
     

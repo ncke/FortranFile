@@ -13,9 +13,18 @@ protocol FortranFileError: Error, CustomStringConvertible {
 
 extension FortranFileError {
     
-    init(kind: ErrorKind, input: String, offset: String.Index, length: Int) {
+    init(
+        kind: ErrorKind,
+        input: String,
+        offset: String.Index,
+        length: Int
+    ) {
         let offInt = input.distance(from: input.startIndex, to: offset)
-        self.init(kind: kind, input: input, offset: offInt, length: length)
+        self.init(
+            kind: kind,
+            input: input,
+            offset: offInt,
+            length: length)
     }
     
     public var description: String {

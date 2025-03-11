@@ -5,17 +5,18 @@ import Foundation
 class FormatParser {
     
     static func parse(formatString: String) throws -> FortranFile.Format {
-        let tokens = FormatTokeniser.tokenise(
-            formatString: formatString.uppercased())
+        let tokens = try FormatTokeniser.tokenise(formatString: formatString)
         
         let descriptors = try tokens.map { token in
             switch token.parse() {
-            case .success(let item): return item
-            case .failure(let kind): throw FortranFile.FormatError(
-                kind: kind,
-                input: formatString,
-                offset: token.tokenOffset,
-                length: token.tokenLength)
+            case .success(let item):
+                return item
+            case .failure(let kind):
+                throw FortranFile.FormatError(
+                    kind: kind,
+                    input: formatString,
+                    offset: token.tokenOffset,
+                    length: token.tokenLength)
             }
         }
         

@@ -14,7 +14,7 @@ protocol Descriptor<Output> {
     func execute(
         input: inout ContiguousArray<CChar>,
         len: Int,
-        output: inout [any FortranValue],
+        output: inout [any FortranFile.Value],
         context: inout ReadingContext
     ) throws
 }
@@ -68,8 +68,8 @@ extension Descriptor {
                     ccBase += 1
                 }
             }
-            
-            str = String(validatingUTF8: ccBase)
+
+            str = String(validatingCString: ccBase)
         }
         
         return str
@@ -98,7 +98,7 @@ extension Descriptor {
                 if ccScan.pointee | 32 == 101 /* E or e */ {
                     isInsideExponent = true
                     ccScan.pointee = 0
-                    real = String(validatingUTF8: ccBase)
+                    real = String(validatingCString: ccBase)
                     ccBase = ccScan + 1
                 } else if !isInsideExponent && ccScan.pointee == 46 /* . */ {
                     hasPoint = true
@@ -108,9 +108,9 @@ extension Descriptor {
             }
             
             if isInsideExponent {
-                expo = String(validatingUTF8: ccBase)
+                expo = String(validatingCString: ccBase)
             } else {
-                real = String(validatingUTF8: ccBase)
+                real = String(validatingCString: ccBase)
             }
         }
         

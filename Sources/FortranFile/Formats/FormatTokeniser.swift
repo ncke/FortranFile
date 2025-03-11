@@ -14,9 +14,11 @@ struct FormatTokeniser {
         let content: [String]
     }
     
-    static func tokenise(formatString: String) -> [Token] {
-        let words = splitIntoWords(formatString)
+    static func tokenise(formatString: String) throws -> [Token] {
+        let uppercasedFormat = formatString.uppercased()
+        let words = splitIntoWords(uppercasedFormat)
         let chunks = aggregateIntoDescriptorChunks(words)
+        try sanitiseChunks(chunks, formatString: formatString)
         let tokens = chunks.map { chunk in makeTokenFromChunk(chunk) }
         
         return tokens
@@ -27,10 +29,40 @@ struct FormatTokeniser {
 // MARK: - Token Constructor
 
 extension FormatTokeniser {
-    
+
+    private static func sanitiseChunks(
+        _ chunks: [[Word]],
+        formatString: String
+    ) throws {
+        var offset: String.Index = formatString.startIndex
+
+        guard !chunks.isEmpty else {
+            throw FortranFile.FormatError(
+                kind: .expectedDescriptor,
+                input: formatString,
+                offset: offset,
+                length: 0)
+        }
+
+        for chunk in chunks {
+            guard
+                !chunk.isEmpty,
+                let (lastOffset, lastContent) = chunk.last
+            else {
+                throw FortranFile.FormatError(
+                    kind: .expectedDescriptor,
+                    input: formatString,
+                    offset: offset,
+                    length: 1)
+            }
+
+            offset = formatString.index(lastOffset, offsetBy: lastContent.count)
+        }
+    }
+
     private static func makeTokenFromChunk(_ chunk: [Word]) -> Token {
         precondition(!chunk.isEmpty)
-        
+
         guard let firstWord = chunk.first else { fatalError() }
         let offset = firstWord.offset
         let length = chunk.reduce(0) { sum, word in sum + word.content.count }

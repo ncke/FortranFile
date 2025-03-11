@@ -2,8 +2,8 @@ import Foundation
 
 struct ATextDescriptor: Descriptor {
     
-    typealias Output = FortranString
-    
+    typealias Output = FortranFile.FortranString
+
     let repeats: Int?
     
     let width: Int
@@ -26,14 +26,14 @@ struct ATextDescriptor: Descriptor {
     func execute(
         input: inout ContiguousArray<CChar>,
         len: Int,
-        output: inout [any FortranValue],
+        output: inout [any FortranFile.Value],
         context: inout ReadingContext
     ) throws {
         guard let str = Self.reassemble(&input) else {
             throw ReadFailure.propagate(.internalError)
         }
         
-        let result = FortranString(value: str)
+        let result = FortranFile.FortranString(value: str)
         output.append(result)
     }
     

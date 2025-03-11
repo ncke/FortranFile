@@ -4,8 +4,8 @@ import Foundation
 
 struct LLogicalDescriptor: Descriptor {
 
-    typealias Output = FortranLogical
-    
+    typealias Output = FortranFile.FortranLogical
+
     let repeats: Int?
     
     let width: Int
@@ -28,7 +28,7 @@ struct LLogicalDescriptor: Descriptor {
     func execute(
         input: inout ContiguousArray<CChar>,
         len: Int,
-        output: inout [any FortranValue],
+        output: inout [any FortranFile.Value],
         context: inout ReadingContext
     ) throws {
         var read: Bool? = nil
@@ -63,7 +63,7 @@ struct LLogicalDescriptor: Descriptor {
             throw ReadFailure.propagate(.expectedLogical)
         }
         
-        let result = FortranLogical(value: boolean)
+        let result = FortranFile.FortranLogical(value: boolean)
         output.append(result)
     }
   

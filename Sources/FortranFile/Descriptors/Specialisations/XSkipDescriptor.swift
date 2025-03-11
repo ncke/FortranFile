@@ -25,7 +25,7 @@ struct XSkipDescriptor: Descriptor {
     func execute(
         input: inout ContiguousArray<CChar>,
         len: Int,
-        output: inout [any FortranValue],
+        output: inout [any FortranFile.Value],
         context: inout ReadingContext
     ) {
         // Skip is a no-op.
