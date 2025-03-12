@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "8F053D07-A178-48CE-9B92-1FE7AE2C1C0E",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "FortranFileTests",
+        "name" : "FortranFileTests"
+      }
+    }
+  ],
+  "version" : 1
+}

@@ -33,4 +33,46 @@ struct LogicalsTests {
         }
     }
 
+    @Test func testLogicalBadDescriptor() throws {
+        let s = "2l"
+
+        do {
+            let _ = try FortranFile.format(from: s)
+            Issue.record("Expected bad descriptor error")
+
+        } catch {
+            guard let error = error as? FortranFile.FormatError else {
+                Issue.record("Unexpected error type")
+                return
+            }
+
+            #expect(error.kind == .badDescriptor)
+            #expect(error.input == s)
+            #expect(error.offset == 0)
+            #expect(error.length == 2)
+        }
+    }
+
+    @Test func testLogicalBadInput() throws {
+        let s = "i2, l2, i2"
+        let i = "123456"
+
+        do {
+            let f = try FortranFile.format(from: s)
+            let _ = try FortranFile.read(input: i, using: f)
+            Issue.record("Expected read error")
+
+        } catch {
+            guard let error = error as? FortranFile.ReadError else {
+                Issue.record("Unexpected error type: \(error)")
+                return
+            }
+
+            #expect(error.kind == .expectedLogical)
+            #expect(error.input == i)
+            #expect(error.offset == 2)
+            #expect(error.length == 2)
+        }
+    }
+
 }
